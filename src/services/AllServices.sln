@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ordering", "ordering", "{1CF5C1FC-834F-49DD-87B4-5ACE7337817E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.WebApi", "ordering\Order.WebApi\Order.WebApi.csproj", "{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{68A7E501-9D77-48EA-A034-E3470BDF781F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.WebApi.Tests", "ordering\Order.WebApi.Tests\Order.WebApi.Tests.csproj", "{F8E518F1-B5CF-4341-894E-002C9EE6D18B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68A7E501-9D77-48EA-A034-E3470BDF781F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68A7E501-9D77-48EA-A034-E3470BDF781F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68A7E501-9D77-48EA-A034-E3470BDF781F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68A7E501-9D77-48EA-A034-E3470BDF781F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8E518F1-B5CF-4341-894E-002C9EE6D18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8E518F1-B5CF-4341-894E-002C9EE6D18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8E518F1-B5CF-4341-894E-002C9EE6D18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8E518F1-B5CF-4341-894E-002C9EE6D18B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A0C07A3-A8A6-4C5E-A06E-686393E1CD90} = {1CF5C1FC-834F-49DD-87B4-5ACE7337817E}
+		{F8E518F1-B5CF-4341-894E-002C9EE6D18B} = {1CF5C1FC-834F-49DD-87B4-5ACE7337817E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3F556062-F734-4D72-A926-1C2DC1FBB024}
+	EndGlobalSection
+EndGlobal

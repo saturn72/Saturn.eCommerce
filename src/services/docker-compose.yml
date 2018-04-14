@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  order.webapi:
+    image: order.webapi
+    build:
+      context: .
+      dockerfile: ordering/Order.WebApi/Dockerfile
