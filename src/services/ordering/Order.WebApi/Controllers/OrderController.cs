@@ -30,7 +30,7 @@ namespace Order.WebApi.Controllers
         /// Creates new order
         /// </summary>
         /// <param name="order">Order details</param>
-        [ProducesResponseType(typeof(OrderModel), (int)HttpStatusCode.Accepted)]
+        [ProducesResponseType(typeof(OrderModel), (int)HttpStatusCode.Created)]
         [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         [HttpPost]

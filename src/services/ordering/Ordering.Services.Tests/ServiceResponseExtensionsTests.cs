@@ -7,8 +7,7 @@ namespace Ordering.Services.Tests
     {
         [Theory]
         [InlineData(ServiceResponseResult.BadOrMissingData, "")]
-        [InlineData(ServiceResponseResult.BadOrMissingData, "some-error-message")]
-        [InlineData(ServiceResponseResult.Success, "some-error-message")]
+        [InlineData(ServiceResponseResult.InternalError, "some-error-message")]
         public void ServiceResponseExtensions_IsSuccessful_ReturnsFalse(ServiceResponseResult result, string errorMessage)
         {
             new ServiceResponse<string>
@@ -16,6 +15,17 @@ namespace Ordering.Services.Tests
                 Result = result,
                 ErrorMessage = errorMessage
             }.IsSuccessful().ShouldBeFalse();
+        }
+
+        [Theory]
+        [InlineData(ServiceResponseResult.Success)]
+        [InlineData(ServiceResponseResult.Created)]
+        public void ServiceResponseExtensions_IsSuccessful_ReturnsTrue(ServiceResponseResult result)
+        {
+            new ServiceResponse<string>
+            {
+                Result = result,
+            }.IsSuccessful().ShouldBeTrue();
         }
     }
 }

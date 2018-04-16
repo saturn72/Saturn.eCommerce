@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Ordering.Services;
 
@@ -11,23 +12,27 @@ namespace Order.WebApi
             = new Dictionary<ServiceResponseResult, Func<object, IActionResult>>
             {
                 {
+                    ServiceResponseResult.Success, data => new OkObjectResult
+                        (data)
+                },
+                {
                     ServiceResponseResult.BadOrMissingData, data => new BadRequestObjectResult
-                    (new{
+                    (new
+                    {
                         message = "Bad or missing data"
                     })
                 },
-                {ServiceResponseResult.Success, data => new OkObjectResult(new
                 {
-                    message = "Sucess with error message",
-                    data = data
-                })}
+                    ServiceResponseResult.Created, data => new CreatedResult("", data)
+                },
+                {
+                    ServiceResponseResult.InternalError, data => new StatusCodeResult((int) HttpStatusCode.NotAcceptable)
+                }
             };
 
         public static IActionResult ToActionResult<TData>(this ServiceResponse<TData> serviceResponse)
         {
-            return serviceResponse.Result == ServiceResponseResult.Success
-                ? new OkObjectResult(serviceResponse.Data)
-                : ActionResultDictionary[serviceResponse.Result](serviceResponse.Data);
+            return ActionResultDictionary[serviceResponse.Result](serviceResponse.Data);
         }
     }
 }

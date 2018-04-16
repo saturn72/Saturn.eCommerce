@@ -5,6 +5,8 @@
         Success,
         BadOrMissingData,
         NotFound,
-        NotSet
+        NotSet,
+        Created,
+        InternalError
     }
 }

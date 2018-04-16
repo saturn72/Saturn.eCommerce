@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -14,15 +15,14 @@ namespace Order.WebApi.Tests.Controllers
     public class OrderControllerTests
     {
         [Theory]
-        [InlineData(ServiceResponseResult.BadOrMissingData, null, typeof(BadRequestObjectResult))]
-        [InlineData(ServiceResponseResult.Success, "some-error-message", typeof(OkObjectResult))]
-        [InlineData(ServiceResponseResult.Not, "some-error-message", typeof(OkObjectResult))]
-        public async Task OrderController_Create_BadRequest_OnIllegalRequestAsync(ServiceResponseResult result, string errorMsg, Type expActionResultType)
+        [InlineData(ServiceResponseResult.InternalError, typeof(StatusCodeResult), HttpStatusCode.NotAcceptable)]
+        [InlineData(ServiceResponseResult.BadOrMissingData, typeof(BadRequestObjectResult), HttpStatusCode.BadRequest)]
+        [InlineData(ServiceResponseResult.Created, typeof(CreatedResult), HttpStatusCode.Created)]
+        public async Task OrderController_Create_BadRequest_OnIllegalRequestAsync(ServiceResponseResult result, Type expResultType, HttpStatusCode expStatusCode)
         {
             var srvResult = new ServiceResponse<OrderModel>
             {
                 Result = result,
-                ErrorMessage = errorMsg
             };
             var orderSrv = new Mock<IOrderService>();
 
@@ -31,7 +31,10 @@ namespace Order.WebApi.Tests.Controllers
             var ctrl = new OrderController(orderSrv.Object);
             var res = await ctrl.CreateOrder(new OrderModel());
 
-            res.ShouldBeOfType(expActionResultType);
+            res.ShouldBeOfType(expResultType);
+
+            if(expResultType == typeof(StatusCodeResult))
+                (res as StatusCodeResult).StatusCode.ShouldBe((int)expStatusCode);
         }
     }
 }

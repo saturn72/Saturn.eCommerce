@@ -9,43 +9,35 @@ namespace Order.WebApi.Tests
 {
     public class ServiceResponserExtensionsTests
     {
-        [Fact]
-        public void ServiceResponseExtensions_ToActionResult_ReturnOk()
-        {
-            new ServiceResponse<string>
-            {
-                Result = ServiceResponseResult.Success,
-            }.ToActionResult().ShouldBeOfType<OkObjectResult>();
-        }
-
         [Theory]
-        [InlineData(ServiceResponseResult.BadOrMissingData, null, typeof(BadRequestObjectResult))]
-        [InlineData(ServiceResponseResult.Success, "some-error-message", typeof(OkObjectResult))]
-        public void ServiceResponseExtensions_ToActionResult_Generic(ServiceResponseResult result, string errorMsg, Type  expObjectResult)
+        [InlineData(ServiceResponseResult.BadOrMissingData, typeof(BadRequestObjectResult))]
+        [InlineData(ServiceResponseResult.Success, typeof(OkObjectResult))]
+        [InlineData(ServiceResponseResult.Created, typeof(CreatedResult))]
+        public void ServiceResponseExtensions_ToActionResult_Generic(ServiceResponseResult result, Type expObjectResult)
         {
             var srvRes = new ServiceResponse<string>
             {
                 Result = result,
-                ErrorMessage = errorMsg
             };
 
             var ar = srvRes.ToActionResult();
-            
+
             ar.ShouldBeOfType(expObjectResult);
         }
 
         [Theory]
-        [InlineData(ServiceResponseResult.Success, "some-error-message", (int) HttpStatusCode.NotAcceptable)]
-        public void ServiceResponseExtensions_ToActionResult_StatusCode(ServiceResponseResult result, string errorMsg, int expStatusCode)
+        [InlineData(ServiceResponseResult.InternalError, HttpStatusCode.NotAcceptable)]
+        public void ServiceResponseExtensions_ToActionResult_StatusCode(ServiceResponseResult result, HttpStatusCode expStatusCode)
         {
             var srvRes = new ServiceResponse<string>
             {
                 Result = result,
-                ErrorMessage = errorMsg
             };
 
-            var ar = srvRes.ToActionResult().ShouldBeOfType<StatusCodeResult>();
-            ar.StatusCode.ShouldBe(expStatusCode);
+            var ar = srvRes.ToActionResult().ShouldBeOfType<StatusCodeResult>()
+                ;
+            ar.StatusCode.ShouldBe((int)expStatusCode);
         }
+
     }
 }
