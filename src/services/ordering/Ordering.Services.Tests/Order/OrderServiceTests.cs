@@ -18,7 +18,7 @@ namespace Ordering.Services.Tests.Order
             },
             new object[]
             {
-               new OrderModel {ReferenceIds = new[] {"123"}}
+               new OrderModel {ReferenceId = "123"}
             },
             new object[]
             {
@@ -31,6 +31,19 @@ namespace Ordering.Services.Tests.Order
         public async Task OrderService_CrateOrder_MissingIds(OrderModel order)
         {
             var os = new OrderService();
+
+            var res = await os.CreateOrder(order);
+            res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);
+        }
+        [Fact]
+        public async Task OrderService_CrateOrder_MissingOrderLines()
+        {
+            var os = new OrderService();
+            var order = new OrderModel
+            {
+                ReferenceId ="some-reference-id",
+                ClientId = "some-client-id",
+            };
 
             var res = await os.CreateOrder(order);
             res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);

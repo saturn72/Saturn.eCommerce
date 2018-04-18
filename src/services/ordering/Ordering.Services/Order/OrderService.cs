@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Ordering.Services.Models;
 
@@ -11,18 +12,23 @@ namespace Ordering.Services.Order
             var srvRes = new ServiceResponse<OrderModel>();
             if (!ValidateCreateOrder(order, srvRes))
                 return srvRes;
-                throw new System.NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         private bool ValidateCreateOrder(OrderModel order, ServiceResponse<OrderModel> srvRes)
         {
-            if (order?.ReferenceIds == null
-                || !order.ReferenceIds.Any()
-                || string.IsNullOrEmpty(order.ClientId)
-                || string.IsNullOrWhiteSpace(order.ClientId))
+            if (order == null
+                || !order.ReferenceId.HasValue()
+                || !order.ClientId.HasValue())
             {
                 srvRes.Result = ServiceResponseResult.BadOrMissingData;
                 srvRes.ErrorMessage = "Missind Id. Please check referenceId and clientId properties";
+            }
+            if (order?.OrderItems == null
+                || !order.OrderItems.Any())
+            {
+                srvRes.Result = ServiceResponseResult.BadOrMissingData;
+                srvRes.ErrorMessage = (srvRes.ErrorMessage ?? "") + " Missind Order lines. Please specify order items.";
             }
 
             return srvRes.IsSuccessful();
