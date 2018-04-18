@@ -10,12 +10,12 @@ namespace Ordering.Services.Order
         public async Task<ServiceResponse<OrderModel>> CreateOrder(OrderModel order)
         {
             var srvRes = new ServiceResponse<OrderModel>();
-            if (!ValidateCreateOrder(order, srvRes))
+            if (!ValidateCreateOrderModel(order, srvRes))
                 return srvRes;
             throw new System.NotImplementedException();
         }
 
-        private bool ValidateCreateOrder(OrderModel order, ServiceResponse<OrderModel> srvRes)
+        private bool ValidateCreateOrderModel(OrderModel order, ServiceResponse<OrderModel> srvRes)
         {
             if (order == null
                 || !order.ReferenceId.HasValue()
@@ -30,7 +30,7 @@ namespace Ordering.Services.Order
                 srvRes.Result = ServiceResponseResult.BadOrMissingData;
                 srvRes.ErrorMessage = (srvRes.ErrorMessage ?? "") + " Missind Order lines. Please specify order items.";
             }
-
+            if(checked if Order Id already exists. ==> clientid_referenceId)
             return srvRes.IsSuccessful();
         }
     }
