@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Moq;
 using Ordering.Services.Models;
 using Ordering.Services.Order;
 using Shouldly;
@@ -30,15 +31,22 @@ namespace Ordering.Services.Tests.Order
         [MemberData(nameof(OrderService_CrateOrder_MissingIds_Data))]
         public async Task OrderService_CrateOrder_MissingIds(OrderModel order)
         {
-            var os = new OrderService();
+            var or = new Mock<IOrderRepository>();
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(null as IEnumerable<OrderModel>);
+
+            var os = new OrderService(or.Object);
 
             var res = await os.CreateOrder(order);
             res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);
         }
+
         [Fact]
         public async Task OrderService_CrateOrder_MissingOrderLines()
         {
-            var os = new OrderService();
+            var or = new Mock<IOrderRepository>();
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(null as IEnumerable<OrderModel>);
+
+            var os = new OrderService(or.Object);
             var order = new OrderModel
             {
                 ReferenceId ="some-reference-id",

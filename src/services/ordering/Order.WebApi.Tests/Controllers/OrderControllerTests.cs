@@ -15,9 +15,10 @@ namespace Order.WebApi.Tests.Controllers
     public class OrderControllerTests
     {
         [Theory]
-        [InlineData(ServiceResponseResult.InternalError, typeof(StatusCodeResult), HttpStatusCode.NotAcceptable)]
+        [InlineData(ServiceResponseResult.InternalError, typeof(StatusCodeResult), HttpStatusCode.InternalServerError)]
         [InlineData(ServiceResponseResult.BadOrMissingData, typeof(BadRequestObjectResult), HttpStatusCode.BadRequest)]
         [InlineData(ServiceResponseResult.Created, typeof(CreatedResult), HttpStatusCode.Created)]
+        [InlineData(ServiceResponseResult.NotAcceptable, typeof(ObjectResult), HttpStatusCode.NotAcceptable)]
         public async Task OrderController_Create_BadRequest_OnIllegalRequestAsync(ServiceResponseResult result, Type expResultType, HttpStatusCode expStatusCode)
         {
             var srvResult = new ServiceResponse<OrderModel>

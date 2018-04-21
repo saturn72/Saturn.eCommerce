@@ -8,5 +8,6 @@ namespace Ordering.Services.Models
         public string OrderId { get; set; }
         public string ReferenceId { get; set; }
         public IEnumerable<OrderItemModel> OrderItems { get; set; }
+        public OrderFulfillmentStatus FulfillmentStatus { get; set; }
     }
 }

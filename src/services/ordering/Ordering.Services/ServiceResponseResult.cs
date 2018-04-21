@@ -7,6 +7,7 @@
         NotFound,
         NotSet,
         Created,
-        InternalError
+        InternalError,
+        NotAcceptable
     }
 }

@@ -29,7 +29,19 @@ namespace Order.WebApi
                     },
                     {
                         ServiceResponseResult.InternalError,
-                        (data, errMsg) => new StatusCodeResult((int) HttpStatusCode.NotAcceptable)
+                        (data, errMsg) => new StatusCodeResult((int) HttpStatusCode.InternalServerError)
+                    },
+                    {
+                        ServiceResponseResult.NotAcceptable,
+                        (data, errMsg) => new ObjectResult(
+                            new
+                            {
+                                data,
+                                message = errMsg
+                            })
+                        {
+                            StatusCode = (int) HttpStatusCode.NotAcceptable
+                        }
                     }
                 };
 

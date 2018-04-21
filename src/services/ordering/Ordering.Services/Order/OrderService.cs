@@ -7,12 +7,27 @@ namespace Ordering.Services.Order
 {
     public class OrderService : IOrderService
     {
+        #region Fields
+
+        private readonly IOrderRepository _orderRepository;
+
+        #endregion
+
+        #region CTOR
+
+        public OrderService(IOrderRepository orderRepository)
+        {
+            _orderRepository = orderRepository;
+        }
+
+        #endregion
+
         public async Task<ServiceResponse<OrderModel>> CreateOrder(OrderModel order)
         {
-            var srvRes = new ServiceResponse<OrderModel>();
+            var srvRes = new ServiceResponse<OrderModel> {Data = order};
             if (!ValidateCreateOrderModel(order, srvRes))
                 return srvRes;
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         private bool ValidateCreateOrderModel(OrderModel order, ServiceResponse<OrderModel> srvRes)
@@ -28,9 +43,21 @@ namespace Ordering.Services.Order
                 || !order.OrderItems.Any())
             {
                 srvRes.Result = ServiceResponseResult.BadOrMissingData;
-                srvRes.ErrorMessage = (srvRes.ErrorMessage ?? "") + " Missind Order lines. Please specify order items.";
+                srvRes.ErrorMessage = string.Concat(srvRes.ErrorMessage,
+                    "\nMissing Order lines. Please specify order items.");
             }
-            if(checked if Order Id already exists. ==> clientid_referenceId)
+
+            var dbOrders = _orderRepository.GetOrdersByClientId(order.ClientId)?
+                .Where(ori => ori.ReferenceId.Equals(order.ReferenceId, StringComparison.InvariantCultureIgnoreCase) &&
+                              ori.FulfillmentStatus != OrderFulfillmentStatus.Canceled).ToArray();
+
+            if (dbOrders == null || !dbOrders.Any())
+            {
+                srvRes.Result = ServiceResponseResult.NotAcceptable;
+                srvRes.ErrorMessage = string.Concat(srvRes.ErrorMessage,
+                    "\nOrder with the same referenceID already exists");
+            }
+
             return srvRes.IsSuccessful();
         }
     }
