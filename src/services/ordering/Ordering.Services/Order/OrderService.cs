@@ -27,6 +27,20 @@ namespace Ordering.Services.Order
             var srvRes = new ServiceResponse<OrderModel> {Data = order};
             if (!ValidateCreateOrderModel(order, srvRes))
                 return srvRes;
+            //insert to db with status created
+            //get dropshippers
+            //check if exists in dropshipper inventory
+            //if exists 
+            //  insert to srop shipper order q
+            //  update db order status
+            //if not in stock
+            //  find secondary drop shipper
+            //      insert to drop shipper q
+            //      update order status in DB
+            //
+            //Setup recuring task to check order status 
+            //If could not find drop shipper, send email to admin
+
             throw new NotImplementedException();
         }
 
@@ -38,6 +52,7 @@ namespace Ordering.Services.Order
             {
                 srvRes.Result = ServiceResponseResult.BadOrMissingData;
                 srvRes.ErrorMessage = "Missind Id. Please check referenceId and clientId properties";
+                return false;
             }
             if (order?.OrderItems == null
                 || !order.OrderItems.Any())
@@ -51,7 +66,7 @@ namespace Ordering.Services.Order
                 .Where(ori => ori.ReferenceId.Equals(order.ReferenceId, StringComparison.InvariantCultureIgnoreCase) &&
                               ori.FulfillmentStatus != OrderFulfillmentStatus.Canceled).ToArray();
 
-            if (dbOrders == null || !dbOrders.Any())
+            if (dbOrders != null && dbOrders.Any())
             {
                 srvRes.Result = ServiceResponseResult.NotAcceptable;
                 srvRes.ErrorMessage = string.Concat(srvRes.ErrorMessage,

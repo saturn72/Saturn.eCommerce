@@ -56,5 +56,25 @@ namespace Ordering.Services.Tests.Order
             var res = await os.CreateOrder(order);
             res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);
         }
+
+        [Fact]
+        public async Task OrderService_CrateOrder_OrderAlreadyPlaced()
+        {
+            var referenceId = "some-reference-id";
+
+            var dbOrders = new [] {new OrderModel{ReferenceId = referenceId}};
+            var or = new Mock<IOrderRepository>();
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(dbOrders);
+
+            var os = new OrderService(or.Object);
+            var order = new OrderModel
+            {
+                ReferenceId = referenceId,
+                ClientId = "some-client-id",
+            };
+
+            var res = await os.CreateOrder(order);
+            res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
+        }
     }
 }
