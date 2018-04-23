@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Ordering.Services.Events;
 using Ordering.Services.Models;
 
 namespace Ordering.Services.Order
@@ -10,14 +12,16 @@ namespace Ordering.Services.Order
         #region Fields
 
         private readonly IOrderRepository _orderRepository;
+        private readonly IEventPublisher _eventPublisher;
 
         #endregion
 
         #region CTOR
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IOrderRepository orderRepository, IEventPublisher eventPublisher)
         {
             _orderRepository = orderRepository;
+            _eventPublisher = eventPublisher;
         }
 
         #endregion
@@ -25,9 +29,12 @@ namespace Ordering.Services.Order
         public async Task<ServiceResponse<OrderModel>> CreateOrder(OrderModel order)
         {
             var srvRes = new ServiceResponse<OrderModel> {Data = order};
-            if (!ValidateCreateOrderModel(order, srvRes))
+            if (!await ValidateCreateOrderModel(order, srvRes))
                 return srvRes;
-            //insert to db with status created
+
+            await _orderRepository.CreateOrder(order);
+            _eventPublisher.PublishAsync(EventType.Created, order);
+
             //get dropshippers
             //check if exists in dropshipper inventory
             //if exists 
@@ -42,9 +49,11 @@ namespace Ordering.Services.Order
             //If could not find drop shipper, send email to admin
 
             throw new NotImplementedException();
+            srvRes.Result = ServiceResponseResult.Created;
+            return srvRes;
         }
 
-        private bool ValidateCreateOrderModel(OrderModel order, ServiceResponse<OrderModel> srvRes)
+        private async Task<bool> ValidateCreateOrderModel(OrderModel order, ServiceResponse<OrderModel> srvRes)
         {
             if (order == null
                 || !order.ReferenceId.HasValue()
@@ -54,15 +63,12 @@ namespace Ordering.Services.Order
                 srvRes.ErrorMessage = "Missind Id. Please check referenceId and clientId properties";
                 return false;
             }
-            if (order?.OrderItems == null
-                || !order.OrderItems.Any())
-            {
-                srvRes.Result = ServiceResponseResult.BadOrMissingData;
-                srvRes.ErrorMessage = string.Concat(srvRes.ErrorMessage,
-                    "\nMissing Order lines. Please specify order items.");
-            }
+            if (!ValidateOrderItems(order.OrderItems, srvRes))
+                return false;
 
-            var dbOrders = _orderRepository.GetOrdersByClientId(order.ClientId)?
+
+            var allClientOrders = await _orderRepository.GetOrdersByClientId(order.ClientId);
+            var dbOrders = allClientOrders?
                 .Where(ori => ori.ReferenceId.Equals(order.ReferenceId, StringComparison.InvariantCultureIgnoreCase) &&
                               ori.FulfillmentStatus != OrderFulfillmentStatus.Canceled).ToArray();
 
@@ -71,9 +77,34 @@ namespace Ordering.Services.Order
                 srvRes.Result = ServiceResponseResult.NotAcceptable;
                 srvRes.ErrorMessage = string.Concat(srvRes.ErrorMessage,
                     "\nOrder with the same referenceID already exists");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateOrderItems(IEnumerable<OrderItemModel> orderItems,
+            ServiceResponse<OrderModel> serviceResponse)
+        {
+            if (orderItems.IsNullOrEmpty())
+            {
+                serviceResponse.Result = ServiceResponseResult.BadOrMissingData;
+                serviceResponse.ErrorMessage = string.Concat(serviceResponse.ErrorMessage,
+                    "Missing Order lines. Please specify order items.");
+                return false;
             }
 
-            return srvRes.IsSuccessful();
+            if (orderItems.Any(oi => !oi.OrderItemId.HasValue())
+                || orderItems.Any(oi=>oi.ReferenceIds.IsNullOrEmpty())
+                || orderItems.Any(oi => oi.ReferenceIds.Keys.Any(k=>!k.HasValue()))
+                || orderItems.Any(oi => oi.ReferenceIds.Values.Any(v=>!v.HasValue()))
+                || orderItems.Any(oi => !oi.Sku.HasValue()))
+            {
+                serviceResponse.Result = ServiceResponseResult.BadOrMissingData;
+                serviceResponse.ErrorMessage = string.Concat(serviceResponse.ErrorMessage,
+                    "Missing Order lines data. Please specify all required data in order items (check all identifiers).");
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
+using Ordering.Services.Events;
 using Ordering.Services.Models;
 using Ordering.Services.Order;
 using Shouldly;
@@ -19,7 +21,7 @@ namespace Ordering.Services.Tests.Order
             },
             new object[]
             {
-               new OrderModel {ReferenceId = "123"}
+                new OrderModel {ReferenceId = "123"}
             },
             new object[]
             {
@@ -32,25 +34,100 @@ namespace Ordering.Services.Tests.Order
         public async Task OrderService_CrateOrder_MissingIds(OrderModel order)
         {
             var or = new Mock<IOrderRepository>();
-            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(null as IEnumerable<OrderModel>);
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(null as IEnumerable<OrderModel>);
 
-            var os = new OrderService(or.Object);
+            var os = new OrderService(or.Object, null);
 
             var res = await os.CreateOrder(order);
             res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);
         }
 
+        [Theory]
+        [MemberData(nameof(OrderService_CrateOrder_MissingDataInOrderLines_Data))]
+        public async Task OrderService_CrateOrder_MissingDataInOrderLines(IEnumerable<OrderItemModel> orderItems)
+        {
+            var or = new Mock<IOrderRepository>();
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(null as IEnumerable<OrderModel>);
+
+            var os = new OrderService(or.Object, null);
+            var order = new OrderModel
+            {
+                ReferenceId = "some-reference-id",
+                ClientId = "some-client-id",
+                OrderItems = orderItems
+            };
+
+            var res = await os.CreateOrder(order);
+            res.Result.ShouldBe(ServiceResponseResult.BadOrMissingData);
+        }
+
+
+        public static IEnumerable<object[]> OrderService_CrateOrder_MissingDataInOrderLines_Data => new[]
+        {
+            new object[] {null},
+            new object[]
+            {
+                new OrderItemModel[] { }
+            },
+            new object[]
+            {
+                new[]
+                {
+                    new OrderItemModel {Sku = "some-sku"}
+                }
+            },
+            new object[]
+            {
+                new[]
+                {
+                    new OrderItemModel {Sku = "some-sku", OrderItemId = "some-id"}
+                }
+            },
+            //Missing reference Key
+            new object[]
+            {
+                new[]
+                {
+                    new OrderItemModel
+                    {
+                        Sku = "some-sku",
+                        OrderItemId = "some-id",
+                        ReferenceIds = new Dictionary<string, string>
+                        {
+                            {"", "123"}
+                        }
+                    }
+                }
+            },
+            //Missing reference value
+            new object[]
+            {
+                new[]
+                {
+                    new OrderItemModel
+                    {
+                        Sku = "some-sku",
+                        OrderItemId = "some-id",
+                        ReferenceIds = new Dictionary<string, string>
+                        {
+                            {"", " "}
+                        }
+                    }
+                }
+            }
+        };
+
         [Fact]
         public async Task OrderService_CrateOrder_MissingOrderLines()
         {
             var or = new Mock<IOrderRepository>();
-            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(null as IEnumerable<OrderModel>);
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(null as IEnumerable<OrderModel>);
 
-            var os = new OrderService(or.Object);
+            var os = new OrderService(or.Object, null);
             var order = new OrderModel
             {
-                ReferenceId ="some-reference-id",
-                ClientId = "some-client-id",
+                ReferenceId = "some-reference-id",
+                ClientId = "some-client-id"
             };
 
             var res = await os.CreateOrder(order);
@@ -62,19 +139,68 @@ namespace Ordering.Services.Tests.Order
         {
             var referenceId = "some-reference-id";
 
-            var dbOrders = new [] {new OrderModel{ReferenceId = referenceId}};
+            var dbOrders = new[] {new OrderModel {ReferenceId = referenceId}};
             var or = new Mock<IOrderRepository>();
-            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).Returns(dbOrders);
+            or.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(dbOrders);
 
-            var os = new OrderService(or.Object);
+            var os = new OrderService(or.Object, null);
             var order = new OrderModel
             {
                 ReferenceId = referenceId,
                 ClientId = "some-client-id",
+                OrderItems = new[]
+                {
+                    new OrderItemModel
+                    {
+                        Sku = "some-sku",
+                        OrderItemId = "some-id",
+                        ReferenceIds = new Dictionary<string, string>
+                        {
+                            {"key", "value"}
+                        }
+                    }
+                }
             };
 
             var res = await os.CreateOrder(order);
             res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
+        }
+
+        [Fact]
+        public async Task OrderService_CrateOrder_PlaceOrderAndPublish()
+        {
+            var orderRepo = new Mock<IOrderRepository>();
+            orderRepo.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(null as OrderModel[]);
+
+            var eventPublisher = new Mock<IEventPublisher>();
+
+            var os = new OrderService(orderRepo.Object, eventPublisher.Object);
+            var order = new OrderModel
+            {
+                ReferenceId = "some-reference-id",
+                ClientId = "some-client-id",
+                OrderItems = new[]
+                {
+                    new OrderItemModel
+                    {
+                        Sku = "some-sku",
+                        OrderItemId = "some-id",
+                        ReferenceIds = new Dictionary<string, string>
+                        {
+                            {"key", "value"}
+                        }
+                    },
+                },
+            };
+
+            var res = await os.CreateOrder(order);
+            orderRepo.Verify(r => r.CreateOrder(It.Is<OrderModel>(o => o == order)), Times.Once);
+            eventPublisher.Verify(ep => ep.Publish(It.Is<CreatedEvent>(ev => ev.Data == order)), Times.Once);
+
+
+            res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
+
+            throw new NotImplementedException();
         }
     }
 }

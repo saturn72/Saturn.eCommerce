@@ -2,6 +2,7 @@
 {
     public enum OrderFulfillmentStatus
     {
+        Init,
         Pending,
         Canceled,
     }
