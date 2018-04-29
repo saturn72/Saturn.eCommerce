@@ -5,4 +5,12 @@ services:
     image: order.webapi
     build:
       context: .
-      dockerfile: ordering/Order.WebApi/Dockerfile
+      dockerfile: ordering/Order.WebApi/Dockerfile   
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "15672:15672"      
+      - "5672:5672"
