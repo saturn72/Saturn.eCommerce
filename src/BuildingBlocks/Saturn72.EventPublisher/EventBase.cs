@@ -1,6 +1,6 @@
 using System;
 
-namespace Ordering.Services.Events
+namespace Saturn72.EventPublisher
 {
     public abstract class EventBase
     {

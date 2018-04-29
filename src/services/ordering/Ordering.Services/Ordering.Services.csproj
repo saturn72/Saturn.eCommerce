@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Saturn72.EventPublisher\Saturn72.EventPublisher.csproj" />
     <ProjectReference Include="..\..\Common\Object.Extensions\Object.Extensions.csproj" />
   </ItemGroup>
 

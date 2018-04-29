@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Ordering.Services.Events;
 using Ordering.Services.Models;
+using Saturn72.EventPublisher;
+using Saturn72.EventPublisher.Events;
 
 namespace Ordering.Services.Order
 {
@@ -33,7 +34,7 @@ namespace Ordering.Services.Order
                 return srvRes;
 
             await _orderRepository.CreateOrder(order);
-            _eventPublisher.PublishAsync(EventType.Created, order);
+            _eventPublisher.PublishEntityCreatedEvent(order);
 
             //get dropshippers
             //check if exists in dropshipper inventory

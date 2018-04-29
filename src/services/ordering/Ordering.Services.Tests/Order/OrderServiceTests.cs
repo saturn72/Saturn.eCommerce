@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
-using Ordering.Services.Events;
 using Ordering.Services.Models;
 using Ordering.Services.Order;
+using Saturn72.EventPublisher;
+using Saturn72.EventPublisher.Events;
 using Shouldly;
 using Xunit;
 
@@ -195,7 +196,7 @@ namespace Ordering.Services.Tests.Order
 
             var res = await os.CreateOrder(order);
             orderRepo.Verify(r => r.CreateOrder(It.Is<OrderModel>(o => o == order)), Times.Once);
-            eventPublisher.Verify(ep => ep.Publish(It.Is<CreatedEvent>(ev => ev.Data == order)), Times.Once);
+            eventPublisher.Verify(ep => ep.Publish(It.Is<CrudEvent<OrderModel>>(ev => ev.CrudEventType == CrudEventType.Created && ev.Data == order)), Times.Once);
 
 
             res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
