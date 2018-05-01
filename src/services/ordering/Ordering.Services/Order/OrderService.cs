@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Ordering.Services.Models;
-using Saturn72.EventPublisher;
-using Saturn72.EventPublisher.Events;
+using Saturn72.Mediator;
 
 namespace Ordering.Services.Order
 {
@@ -13,16 +12,16 @@ namespace Ordering.Services.Order
         #region Fields
 
         private readonly IOrderRepository _orderRepository;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IMediator _mediator;
 
         #endregion
 
         #region CTOR
 
-        public OrderService(IOrderRepository orderRepository, IEventPublisher eventPublisher)
+        public OrderService(IOrderRepository orderRepository, IMediator mediator)
         {
             _orderRepository = orderRepository;
-            _eventPublisher = eventPublisher;
+            _mediator = mediator;
         }
 
         #endregion
@@ -34,7 +33,7 @@ namespace Ordering.Services.Order
                 return srvRes;
 
             await _orderRepository.CreateOrder(order);
-            _eventPublisher.PublishEntityCreatedEvent(order);
+            var response = await _mediator.Command(order);
 
             //get dropshippers
             //check if exists in dropshipper inventory

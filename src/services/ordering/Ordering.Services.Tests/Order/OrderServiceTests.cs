@@ -6,6 +6,7 @@ using Ordering.Services.Models;
 using Ordering.Services.Order;
 using Saturn72.EventPublisher;
 using Saturn72.EventPublisher.Events;
+using Saturn72.Mediator;
 using Shouldly;
 using Xunit;
 
@@ -173,9 +174,9 @@ namespace Ordering.Services.Tests.Order
             var orderRepo = new Mock<IOrderRepository>();
             orderRepo.Setup(o => o.GetOrdersByClientId(It.IsAny<string>())).ReturnsAsync(null as OrderModel[]);
 
-            var eventPublisher = new Mock<IEventPublisher>();
+            var mediator = new Mock<IMediator>();
 
-            var os = new OrderService(orderRepo.Object, eventPublisher.Object);
+            var os = new OrderService(orderRepo.Object, mediator.Object);
             var order = new OrderModel
             {
                 ReferenceId = "some-reference-id",
@@ -196,7 +197,7 @@ namespace Ordering.Services.Tests.Order
 
             var res = await os.CreateOrder(order);
             orderRepo.Verify(r => r.CreateOrder(It.Is<OrderModel>(o => o == order)), Times.Once);
-            eventPublisher.Verify(ep => ep.Publish(It.Is<CrudEvent<OrderModel>>(ev => ev.CrudEventType == CrudEventType.Created && ev.Data == order)), Times.Once);
+            mediator.Verify(ep => ep.Command(It.Is<CrudEvent<OrderModel>>(ev => ev.CrudEventType == CrudEventType.Created && ev.Data == order)), Times.Once);
 
 
             res.Result.ShouldBe(ServiceResponseResult.NotAcceptable);
